@@ -1,0 +1,4 @@
+// -*- mode: c++ -*-
+#pragma once
+
+#include <bits/closure.h>

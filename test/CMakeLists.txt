@@ -1,0 +1,2 @@
+add_executable(closure_test closure_test.cpp)
+target_link_libraries(closure_test algo_lib)
