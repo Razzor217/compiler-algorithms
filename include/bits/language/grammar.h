@@ -11,25 +11,26 @@ namespace compiler
     class grammar
     {
     public:
-        using symbol_set = std::vector<symbol_type>;
-        using production_set = std::vector<production<symbol_type>>;
+        using production_type = production<symbol_type>;
+        using set_type = std::set<production_type>;
+        using vector_type = std::vector<production_type>;
+        // vocabulary
+        using symbol_set = typename production_type::set_type;
 
-        symbol_set& terminal_symbols() const { return terminals_; }
-        symbol_set& nonterminal_symbols() const { return nonterminals_; }
-        production_set& productions() const { return productions_; }
-        symbol_type start() const { return start; }
+        inline symbol_set& terminal_symbols() const { return terminals_; }
+        inline symbol_set& nonterminal_symbols() const { return nonterminals_; }
+        inline set_type& productions() const { return productions_; }
+        inline symbol_type start() const { return start; }
 
         explicit grammar(symbol_set const& terminals,
             symbol_set const& nonterminals,
-            production_set const& productions,
+            set_type const& productions,
             symbol_type const& start) :
             terminals_ {terminals},
             nonterminals_ {nonterminals},
             productions_ {productions},
             start_ {start}
         {
-            // todo: add assertions for productions
-
             /*
              * check whether for all nonterminals on right sides of productions
              * there exists a production with the nonterminal on the left side
@@ -38,15 +39,12 @@ namespace compiler
         }
 
     private:
-        production_set productions_starting_with(symbol_type const& n)
+        vector_type productions_starting_with(symbol_type const& n)
         {
-            production_set result;
-            for (production<symbol_type> const& p : productions_)
+            vector_type result;
+            for (production_type const& p : productions_)
             {
-                if (p.left() == n)
-                {
-                    result.push_back(p);
-                }
+                if (p.left() == n) { result.push_back(p); }
             }
             return result;
         }
@@ -54,10 +52,7 @@ namespace compiler
         bool check_nonterminals() const
         {
             std::map<symbol_type, bool> visited;
-            for (symbol_type const& n : nonterminals_.get())
-            {
-                visited.insert({n, false});
-            }
+            for (symbol_type const& n : nonterminals_) { visited.insert({n, false}); }
             std::queue<symbol_type> q;
             q.push(start_);
 
@@ -69,24 +64,18 @@ namespace compiler
                 auto ps = productions_starting_with(current);
 
                 // no production with matching left-hand-side found
-                if (ps.empty())
-                {
-                    return false;
-                }
+                if (ps.empty()) { return false; }
 
                 visited[current] = true;
 
-                for (production<symbol_type> const& p : ps)
+                for (production_type const& prod : ps)
                 {
-                    // find all nonterminals N s.t. p = A -> alpha N beta
-                    auto nts = p.nonterminals();
+                    // find all nonterminals N s.t. prod = A -> alpha N beta
+                    auto nts = prod.nonterminals();
                     for (symbol_type const& n : nts)
                     {
                         // check not yet visited nonterminals
-                        if (!visited[n])
-                        {
-                            q.push(n);
-                        }
+                        if (!visited[n]) { q.push(n); }
                     }
                 }
             }
@@ -97,7 +86,7 @@ namespace compiler
     private:
         symbol_set terminals_;
         symbol_set nonterminals_;
-        production_set productions_;
+        set_type productions_;
         symbol_type start_;
     };
 } // namespace compiler
