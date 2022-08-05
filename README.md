@@ -17,4 +17,4 @@ algorithms for
 ## Currently implemented
 
 * data structures for productions and grammars
-* closure algorithm
+* closure algorithm (untested)
